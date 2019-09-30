@@ -87,11 +87,15 @@ MuxerListenerFactory::StreamData ToMuxerListenerData(
     const StreamDescriptor& stream) {
   MuxerListenerFactory::StreamData data;
   data.media_info_output = stream.output;
+
   data.hls_group_id = stream.hls_group_id;
   data.hls_name = stream.hls_name;
   data.hls_playlist_name = stream.hls_playlist_name;
   data.hls_iframe_playlist_name = stream.hls_iframe_playlist_name;
   data.hls_characteristics = stream.hls_characteristics;
+
+  data.dash_accessiblities = stream.dash_accessiblities;
+  data.dash_roles = stream.dash_roles;
   return data;
 };
 
@@ -206,7 +210,8 @@ Status ValidateStreamDescriptor(bool dump_stream_info,
 
   if (output_format == CONTAINER_UNKNOWN) {
     return Status(error::INVALID_ARGUMENT, "Unsupported output format.");
-  } else if (output_format == MediaContainerName::CONTAINER_MPEG2TS) {
+  }
+  if (output_format == MediaContainerName::CONTAINER_MPEG2TS) {
     if (stream.segment_template.empty()) {
       return Status(
           error::INVALID_ARGUMENT,
@@ -351,9 +356,8 @@ bool StreamDescriptorCompareFn(const StreamDescriptor& a,
       // The MPD notifier requires that the main track comes first, so make
       // sure that happens.
       return a.trick_play_factor < b.trick_play_factor;
-    } else {
-      return a.stream_selector < b.stream_selector;
     }
+    return a.stream_selector < b.stream_selector;
   }
 
   return a.input < b.input;
@@ -899,10 +903,8 @@ Status Packager::Initialize(
   // DASH approximate segment timeline.
   const double target_segment_duration =
       packaging_params.chunking_params.segment_duration_in_seconds;
-  if (mpd_params.target_segment_duration != 0)
-    mpd_params.target_segment_duration = target_segment_duration;
-  if (hls_params.target_segment_duration != 0)
-    hls_params.target_segment_duration = target_segment_duration;
+  mpd_params.target_segment_duration = target_segment_duration;
+  hls_params.target_segment_duration = target_segment_duration;
 
   // Store callback params to make it available during packaging.
   internal->buffer_callback_params = packaging_params.buffer_callback_params;

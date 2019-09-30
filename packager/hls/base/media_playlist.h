@@ -61,7 +61,8 @@ class MediaPlaylist {
   };
 
   /// @param hls_params contains HLS parameters.
-  /// @param file_name is the file name of this media playlist.
+  /// @param file_name is the file name of this media playlist, relative to
+  ///        master playlist output path.
   /// @param name is the name of this playlist. In other words this is the
   ///        value of the NAME attribute for EXT-X-MEDIA. This is not
   ///        necessarily the same as @a file_name.
@@ -227,7 +228,7 @@ class MediaPlaylist {
   bool inserted_discontinuity_tag_ = false;
   int discontinuity_sequence_number_ = 0;
 
-  double longest_segment_duration_ = 0.0;
+  double longest_segment_duration_seconds_ = 0.0;
   uint32_t time_scale_ = 0;
 
   BandwidthEstimator bandwidth_estimator_;
@@ -240,7 +241,10 @@ class MediaPlaylist {
   bool target_duration_set_ = false;
   uint32_t target_duration_ = 0;
 
+  // TODO(kqyang): This could be managed better by a separate class, than having
+  // all them managed in MediaPlaylist.
   std::list<std::unique_ptr<HlsEntry>> entries_;
+  double current_buffer_depth_ = 0;
   // A list to hold the file names of the segments to be removed temporarily.
   // Once a file is actually removed, it is removed from the list.
   std::list<std::string> segments_to_be_removed_;
